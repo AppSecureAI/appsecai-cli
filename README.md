@@ -1,6 +1,9 @@
 # AppSecAI CLI
 
-Command-line tool for AppSecAI vulnerability scanning and remediation.
+Command-line tool for AppSecAI that lets you submit SARIF scan results and track automated fix progress directly from your terminal or CI pipeline.
+
+- Submit SARIF files and trigger fix workflows in one command
+- Designed for local terminals and headless VM/CI environments
 
 
 ---
@@ -19,10 +22,6 @@ appsecai login
 
 # Submit a SARIF file for automated scanning and remediation
 appsecai submit results.sarif --repo owner/repo --branch main
-
-# PRs are created automatically by default after remediation.
-# To disable PR creation:
-appsecai submit results.sarif --repo owner/repo --branch main --no-auto-create-prs
 
 # Check fix status (one-time snapshot)
 appsecai status <run-id>
@@ -67,6 +66,8 @@ Installer behavior:
 - Creates a legacy alias at `/usr/local/bin/appsecai-cli` for backward compatibility only; use `appsecai` in new commands/docs
 - May request `sudo` if `/usr/local/bin` is not writable
 
+For full installation options, see the [installation guide](https://portal.cloud.appsecai.io/docs/cli#install).
+
 ---
 
 ## Authentication
@@ -110,12 +111,12 @@ appsecai logout --force
 
 Key `submit` flags:
 
-| Flag                      | Description                                                 |
-| ------------------------- | ----------------------------------------------------------- |
-| `-r, --repo <owner/repo>` | Repository (required)                                       |
-| `-b, --branch <branch>`   | Branch to remediate (required)                              |
-| `--no-auto-create-prs`    | Prevent automatic PR creation (PRs are created by default)  |
-| `-m, --mode <mode>`       | Processing mode (`individual_cc`, `group_cc`, `individual`) |
+| Flag                      | Description                                                |
+| ------------------------- | ---------------------------------------------------------- |
+| `-r, --repo <owner/repo>` | Repository (required)                                      |
+| `-b, --branch <branch>`   | Branch to remediate (required)                             |
+| `--no-auto-create-prs`    | Prevent automatic PR creation (PRs are created by default) |
+
 
 ---
 
@@ -131,11 +132,6 @@ appsecai submit results.sarif --repo myorg/myrepo --branch main
 appsecai watch <run-id>
 ```
 
-### Submit without auto-PR creation
-
-```bash
-appsecai submit results.sarif --repo myorg/myrepo --branch main --no-auto-create-prs
-```
 
 ### Check status in JSON format
 
@@ -153,43 +149,29 @@ appsecai status <run-id>
 ```
 
 
+For more usage examples, see the [usage guide](https://portal.cloud.appsecai.io/docs/cli#usage).
+
 ---
 
 ## Configuration
 
-Canonical configuration and endpoint routing references:
-
-- [Internal Developer Guide](https://portal.cloud.appsecai.io/docs/cli#install)
-- [Environment Endpoints (canonical)](https://portal.cloud.appsecai.io/docs/cli#usage)
-- [Testing Guide](https://portal.cloud.appsecai.io/docs/cli#usage)
 
 ---
 
 ## Troubleshooting
 
-Use canonical troubleshooting guidance:
+For troubleshooting help, see the [troubleshooting guide](https://portal.cloud.appsecai.io/docs/cli#troubleshooting).
 
-- [Troubleshooting](https://portal.cloud.appsecai.io/docs/cli#troubleshooting)
 
 ---
 
 ## Documentation
 
-- [README Routing Matrix](https://portal.cloud.appsecai.io/docs/cli#usage)
-- [Quick Start](https://portal.cloud.appsecai.io/docs/cli#install)
-- [Internal Developer Guide](https://portal.cloud.appsecai.io/docs/cli#install)
-- [Testing Guide](https://portal.cloud.appsecai.io/docs/cli#usage)
-- [Automated Testing Details](https://portal.cloud.appsecai.io/docs/cli#usage)
-- [Release Process](https://portal.cloud.appsecai.io/docs/cli#usage)
-- [Environment Endpoints (canonical)](https://portal.cloud.appsecai.io/docs/cli#usage)
-- [Troubleshooting](https://portal.cloud.appsecai.io/docs/cli#troubleshooting)
-- [Phase 2 Release Tracker](https://portal.cloud.appsecai.io/docs/cli#usage)
 
 ---
 
 ## Support
 
-- Support: `https://portal.cloud.appsecai.io/support`
 - Support: `https://portal.cloud.appsecai.io/support`
 
 ---
