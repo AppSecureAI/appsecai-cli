@@ -172,7 +172,7 @@ For troubleshooting help, see the [troubleshooting guide](https://portal.cloud.a
 
 ## Support
 
-- Support: `https://portal.cloud.appsecai.io/support`
+- Issues: Use the repository issue tracker in your current repo host.
 
 ---
 
