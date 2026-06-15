@@ -1,8 +1,8 @@
 # AppSecAI CLI
 
-Command-line tool for AppSecAI that lets you submit SARIF scan results and track automated fix progress directly from your terminal or CI pipeline.
+Command-line tool for AppSecAI that lets you submit SARIF, JSON, CSV, or TSV vulnerability results and track automated fix progress directly from your terminal or CI pipeline.
 
-- Submit SARIF files and trigger fix workflows in one command
+- Submit SARIF, JSON, CSV, or TSV files and trigger fix workflows in one command
 - Designed for local terminals and headless VM/CI environments
 
 
@@ -20,8 +20,11 @@ curl -fsSL https://raw.githubusercontent.com/AppSecureAI/appsecai-cli/main/insta
 # Authenticate — paste your AppSecAI token when prompted
 appsecai login
 
-# Submit a SARIF file for automated scanning and remediation
+# Submit a SARIF, JSON, CSV, or TSV file for automated scanning and remediation
 appsecai submit results.sarif --repo owner/repo --branch main
+
+# Submit multiple scanner outputs as one multi-SAST run
+appsecai submit --files "semgrep.sarif,codeql.sarif" --repo owner/repo --branch main
 
 # Check fix status (one-time snapshot)
 appsecai status <run-id>
@@ -102,24 +105,61 @@ appsecai logout --force
 | Command                                                                  | Description                                                                |
 | ------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
 | `appsecai login [-t <token>] [-u <url>]`                                 | Authenticate; prompts for token interactively if `-t` is omitted           |
-| `appsecai submit <file> -r <owner/repo> -b <branch>`                     | Submit a SARIF file to start scanning and remediation                      |
-| `appsecai watch <run-id> [--org-id <org-id>]`                            | Watch fix progress live (Find → Triage → Remediation → Push)               |
+| `appsecai submit <file> -r <owner/repo> -b <branch>`                     | Submit SARIF, JSON, CSV, TSV, or XML to start scanning and remediation     |
+| `appsecai submit --files <paths> -r <owner/repo> -b <branch>`            | Submit multiple files as one multi-SAST run                                |
+| `appsecai watch <run-id> [--org-id <org-id>]`                            | Watch fix progress live; CI flags can fail on timeout and write summaries  |
 | `appsecai status <run-id> [--org-id <org-id>] [-j]`                      | Check fix status snapshot; `-j/--json` outputs JSON                        |
 | `appsecai results <run-id> [--show] [--download] [--include-fixed-code]` | Preview run results, show grouped inline output, or download full artifact |
 | `appsecai logout [-f]`                                                   | Remove stored credentials; `-f/--force` skips confirmation                 |
+| `appsecai doctor [--repo <owner/repo>] [--file <path>] [-j]`             | Diagnose auth, endpoint, repository, backend, and file setup               |
 | `appsecai version`                                                       | Print CLI version                                                          |
 | `appsecai --help`                                                        | Show command usage                                                         |
 
 Key `submit` flags:
 
-| Flag                      | Description                                                                                                                                                        |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `-r, --repo <owner/repo>` | Repository (required)                                                                                                                                              |
-| `-b, --branch <branch>`   | Branch to remediate (required)                                                                                                                                     |
-| `--no-auto-create-prs`    | Prevent automatic PR creation (PRs are created by default)                                                                                                         |
-| `-m, --mode <mode>`       | Processing mode (`group_cc` default; `individual_cc` keeps one PR per vulnerability with code context; `individual` keeps one PR per finding without code context) |
+| Flag                          | Description                                                                                                                                      |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `-r, --repo <owner/repo>`     | Repository (required)                                                                                                                            |
+| `-b, --branch <branch>`       | Branch to remediate (required)                                                                                                                   |
+| `--files <paths>`             | Comma- or newline-separated vulnerability result files; supports simple `*` and `**` globs                                                       |
+| `--auto-create-prs`           | Enable automatic PR creation (PRs are not created by default)                                                                                    |
+| `-m, --mode <mode>`           | Processing mode (`individual_cc` default; `group_cc` groups related vulnerabilities; `individual` keeps one PR per finding without code context) |
+| `--pr-audience <values>`      | Target generated PR content for `security`, `engineering`, or both audiences                                                                     |
+| `--allow-missing-repo-access` | Start the run even if the AppSecAI GitHub App cannot yet push to the target repo (default: off; without it, submit fails fast). See below.       |
 
 Use `--mode group_cc` when you want fewer, consolidated remediation PRs.
+
+CSV, TSV, and XML content is accepted by the CLI and validated by the backend. Use `--skip-content-validation` when you want JSON/SARIF content checks delegated to the backend as well.
+
+### Missing repo push access (fail fast + override)
+
+Before a run starts, the platform verifies that the AppSecAI GitHub App can push
+to the target repository. If it cannot, `submit` **fails fast** with a non-zero
+exit and an actionable message (which repo, why, and how to fix it) instead of
+starting a run that could do hours of work and then fail at PR-push time.
+
+Use `--allow-missing-repo-access` for the licensed-org case: your organization is
+licensed and the App is installed, but the target repository simply has not been
+added to the App yet. The run starts immediately, and the pull requests with the
+fixes are pushed once the repository is added to the AppSecAI GitHub App. When the
+flag is used, the CLI prints a notice that fixes will not be delivered until repo
+access is granted.
+
+```bash
+# Start now even though the repo isn't added to the App yet
+appsecai submit results.sarif --repo myorg/myrepo --branch main --allow-missing-repo-access
+```
+
+Key `watch` flags:
+
+| Flag                    | Description                                                     |
+| ----------------------- | --------------------------------------------------------------- |
+| `--fail-on-timeout`     | Exit non-zero if watch reaches `--timeout`                      |
+| `--finalize`            | Compute the final server summary before writing terminal output |
+| `--compute-summary`     | Alias for `--finalize`                                          |
+| `--summary-json <path>` | Write terminal run status and summary JSON                      |
+| `--summary-md <path>`   | Write terminal run status and summary markdown                  |
+| `-j, --json`            | Print terminal watch result as JSON                             |
 
 Key `results` flags:
 
@@ -136,11 +176,21 @@ Key `results` flags:
 ### Submit and watch
 
 ```bash
-# Submit SARIF file
+# Submit SARIF, JSON, CSV, TSV, or XML file
 appsecai submit results.sarif --repo myorg/myrepo --branch main
+
+# Submit multiple SAST outputs in one run
+appsecai submit --files "semgrep.sarif,codeql.sarif,bandit.json" --repo myorg/myrepo --branch main
+
+# Newline-separated and glob inputs are also supported
+appsecai submit --files $'semgrep.sarif\ncodeql.sarif' --repo myorg/myrepo --branch main
+appsecai submit --files "reports/**/*.sarif" --repo myorg/myrepo --branch main
 
 # Watch live progress
 appsecai watch <run-id>
+
+# CI-safe watch: fail on timeout, compute summary, and write artifacts
+appsecai watch <run-id> --fail-on-timeout --finalize --summary-json summary.json --summary-md summary.md --json
 
 # Watch or fetch status through org-scoped endpoints when available
 appsecai watch <run-id> --org-id <org-id>
