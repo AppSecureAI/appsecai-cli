@@ -1,8 +1,8 @@
 # AppSecAI CLI
 
-Command-line tool for AppSecAI that lets you submit SARIF, JSON, CSV, or TSV vulnerability results and track automated fix progress directly from your terminal or CI pipeline.
+Command-line tool for AppSecAI that lets you submit SARIF, JSON, CSV, TSV, or XML vulnerability results and track automated fix progress directly from your terminal or CI pipeline.
 
-- Submit SARIF, JSON, CSV, or TSV files and trigger fix workflows in one command
+- Submit SARIF, JSON, CSV, TSV, or XML files and trigger fix workflows in one command
 - Designed for local terminals and headless VM/CI environments
 
 
@@ -20,7 +20,7 @@ curl -fsSL https://raw.githubusercontent.com/AppSecureAI/appsecai-cli/main/insta
 # Authenticate — paste your AppSecAI token when prompted
 appsecai login
 
-# Submit a SARIF, JSON, CSV, or TSV file for automated scanning and remediation
+# Submit a SARIF, JSON, CSV, TSV, or XML file for automated scanning and remediation
 appsecai submit results.sarif --repo owner/repo --branch main
 
 # Submit multiple scanner outputs as one multi-SAST run
