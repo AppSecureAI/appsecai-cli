@@ -252,15 +252,19 @@ When `uncovered_reasons` is present in the payload, `--show` renders a bucket br
 canonical labels (`Deduplicated findings`, `Filtered by policy`, `No remediation artifact produced`)
 with a sanitized fallback for unrecognised keys.
 
+Grouped PR rows include a grouped-fix line when the server provides grouping metadata, for example
+`Grouped fix: PR #3422 fixes 2 vulnerabilities`.
+
 #### Fixed-code provenance labels
 
 When using `--show --include-fixed-code`, each fixed-code block displays a `Provenance:` line:
 
-| Server value             | User-facing label    |
-| ------------------------ | -------------------- |
-| `final_artifact`         | Final artifact       |
-| `remediate_fallback`     | Remediation fallback |
-| `unavailable` or unknown | Unavailable          |
+| Server value             | User-facing label      |
+| ------------------------ | ---------------------- |
+| `final_artifact`         | Final artifact         |
+| `grouped_final_artifact` | Grouped final artifact |
+| `remediate_fallback`     | Remediation fallback   |
+| `unavailable` or unknown | Unavailable            |
 
 ### Full flow
 
