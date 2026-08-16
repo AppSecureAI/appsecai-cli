@@ -1,8 +1,8 @@
 # AppSecAI CLI
 
-Command-line tool for AppSecAI that lets you submit SARIF, JSON, CSV, TSV, or XML vulnerability results and track automated fix progress directly from your terminal or CI pipeline.
+Command-line tool for AppSecAI that lets you submit SARIF, JSON, CSV, or TSV vulnerability results and track automated fix progress directly from your terminal or CI pipeline.
 
-- Submit SARIF, JSON, CSV, TSV, or XML files and trigger fix workflows in one command
+- Submit SARIF, JSON, CSV, or TSV files and trigger fix workflows in one command
 - Designed for local terminals and headless VM/CI environments
 
 
@@ -20,7 +20,7 @@ curl -fsSL https://raw.githubusercontent.com/AppSecureAI/appsecai-cli/main/insta
 # Authenticate — paste your AppSecAI token when prompted
 appsecai login
 
-# Submit a SARIF, JSON, CSV, TSV, or XML file for automated scanning and remediation
+# Submit a SARIF, JSON, CSV, or TSV file for automated scanning and remediation
 appsecai submit results.sarif --repo owner/repo --branch main
 
 # Submit multiple scanner outputs as one multi-SAST run
@@ -102,18 +102,18 @@ appsecai logout --force
 
 ## Commands
 
-| Command                                                                  | Description                                                                |
-| ------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
-| `appsecai login [-t <token>] [-u <url>]`                                 | Authenticate; prompts for token interactively if `-t` is omitted           |
-| `appsecai submit <file> -r <owner/repo> -b <branch>`                     | Submit SARIF, JSON, CSV, TSV, or XML to start scanning and remediation     |
-| `appsecai submit --files <paths> -r <owner/repo> -b <branch>`            | Submit multiple files as one multi-SAST run                                |
-| `appsecai watch <run-id> [--org-id <org-id>]`                            | Watch fix progress live; CI flags can fail on timeout and write summaries  |
-| `appsecai status <run-id> [--org-id <org-id>] [-j]`                      | Check fix status snapshot; `-j/--json` outputs JSON                        |
-| `appsecai results <run-id> [--show] [--download] [--include-fixed-code]` | Preview run results, show grouped inline output, or download full artifact |
-| `appsecai logout [-f]`                                                   | Remove stored credentials; `-f/--force` skips confirmation                 |
-| `appsecai doctor [--repo <owner/repo>] [--file <path>] [-j]`             | Diagnose auth, endpoint, repository, backend, and file setup               |
-| `appsecai version`                                                       | Print CLI version                                                          |
-| `appsecai --help`                                                        | Show command usage                                                         |
+| Command                                                                       | Description                                                                                                    |
+| ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `appsecai login [-t <token>] [-u <url>]`                                      | Authenticate; prompts for token interactively if `-t` is omitted                                               |
+| `appsecai submit <file> -r <owner/repo> -b <branch>`                          | Submit SARIF, JSON, CSV, TSV, or XML to start scanning and remediation                                         |
+| `appsecai submit --files <paths> -r <owner/repo> -b <branch>`                 | Submit multiple files as one multi-SAST run                                                                    |
+| `appsecai watch <run-id> [--org-id <org-id>]`                                 | Watch fix progress live; CI flags can fail on timeout and write summaries                                      |
+| `appsecai status <run-id> [--org-id <org-id>] [-j]`                           | Check fix status snapshot; `-j/--json` outputs JSON                                                            |
+| `appsecai results <run-id> [--show] [--download] [-j] [--include-fixed-code]` | Preview run results, show grouped inline output, download the full artifact, or print it as JSON (`-j/--json`) |
+| `appsecai logout [-f]`                                                        | Remove stored credentials; `-f/--force` skips confirmation                                                     |
+| `appsecai doctor [--repo <owner/repo>] [--file <path>] [-j]`                  | Diagnose auth, endpoint, repository, backend, and file setup                                                   |
+| `appsecai version`                                                            | Print CLI version                                                                                              |
+| `appsecai --help`                                                             | Show command usage                                                                                             |
 
 Key `submit` flags:
 
@@ -163,11 +163,12 @@ Key `watch` flags:
 
 Key `results` flags:
 
-| Flag                   | Description                                                          |
-| ---------------------- | -------------------------------------------------------------------- |
-| `--show`               | Show grouped PR/issue results inline in the terminal (no file write) |
-| `--download`           | Download full JSON artifact to `appsecai-results-<run-id>.json`      |
-| `--include-fixed-code` | Include fixed-code payload in `--show` or `--download` output        |
+| Flag                   | Description                                                                                                        |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `--show`               | Show grouped PR/issue results inline in the terminal (no file write)                                               |
+| `--download`           | Download full JSON artifact to `appsecai-results-<run-id>.json`                                                    |
+| `-j, --json`           | Print the full results payload to stdout as exactly one parseable JSON document (progress and errors go to stderr) |
+| `--include-fixed-code` | Include fixed-code payload in `--show`, `--download`, or `--json` output                                           |
 
 ---
 
@@ -215,6 +216,10 @@ appsecai results <run-id> --show
 
 # Download mode: writes full JSON artifact to disk
 appsecai results <run-id> --download
+
+# JSON mode: prints the full results payload to stdout as a single JSON document
+appsecai results <run-id> --json
+appsecai results <run-id> --json | jq '.summary'
 
 # Show grouped output with per-file fixed code blocks
 appsecai results <run-id> --show --include-fixed-code
