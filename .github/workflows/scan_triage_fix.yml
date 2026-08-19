@@ -1,0 +1,66 @@
+name: OpenGrep Triage and Remediation Smart Grouped Prod
+
+permissions:
+  contents: read
+  id-token: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      grouping_strategy:
+        description: "How AppSecAI should group related findings"
+        required: true
+        default: smart
+        type: choice
+        options:
+          - smart
+          - cwe_category
+          - file_proximity
+          - module
+      auto_create_prs:
+        description: "Automatically create remediation pull requests"
+        required: true
+        default: true
+        type: boolean
+      opengrep_version:
+        description: "OpenGrep release version to download"
+        required: true
+        default: v1.16.1
+        type: string
+
+env:
+  OPENGREP_VERSION: ${{ inputs.opengrep_version }}
+
+jobs:
+  opengrep-scan-and-process:
+    runs-on: ubuntu-latest
+    env:
+      PROCESSING_MODE: group_cc
+      GROUPING_STRATEGY: ${{ inputs.grouping_strategy }}
+      AUTO_CREATE_PRS: ${{ inputs.auto_create_prs }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download OpenGrep
+        run: |
+          curl -sL "https://github.com/opengrep/opengrep/releases/download/${OPENGREP_VERSION}/opengrep_manylinux_x86" -o opengrep
+          chmod +x opengrep
+
+      - name: Run OpenGrep scan
+        run: |
+          ./opengrep scan --sarif --sarif-output=opengrep-results.sarif --config auto . || true
+
+      - name: Upload SARIF as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: opengrep-sarif
+          path: opengrep-results.sarif
+          retention-days: 7
+
+      - name: AppSecAI Triage and Remediation
+        uses: AppSecureAI/submit-run-action@main
+        with:
+          file: opengrep-results.sarif
